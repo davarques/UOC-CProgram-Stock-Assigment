@@ -1,0 +1,88 @@
+#include <stdio.h>
+
+/* Constants */
+#define NUM_EQUIPMENT_TYPES 6
+#define MIN_UNITS 5
+#define MAX_FILE_NAME 25
+
+/* Types */
+typedef enum {DESKTOP=1, LAPTOP, PRINTER, MONITOR, KEYBOARD, MOUSE} tEquipmentType;
+
+/* Algorithm */
+int main() {
+    /* Variables */
+    /* Data read on the file */
+    tEquipmentType equipmentType[NUM_EQUIPMENT_TYPES] = {DESKTOP};
+    int availablePerType[NUM_EQUIPMENT_TYPES] = {0};
+    float maxPricePerType[NUM_EQUIPMENT_TYPES] = {0.0F};
+    float minPricePerType[NUM_EQUIPMENT_TYPES] = {0.0F};
+    float avgPricePerType[NUM_EQUIPMENT_TYPES] = {0.0F};
+    /* Notices info */
+    tEquipmentType equipmentNotice[NUM_EQUIPMENT_TYPES] = {DESKTOP}; 
+    int requiredPerNotice[NUM_EQUIPMENT_TYPES] = {0};
+    float costPerNotice[NUM_EQUIPMENT_TYPES] = {0.0F};
+    /* Counters & Totals */
+    int numNotices = 0;
+    int requiredTmp = 0;
+    float totalRestockCost = 0.0F;
+    /* Loop count & file read */
+    int i = 0;
+    char filename[MAX_FILE_NAME] = "";
+    FILE* fileToRead = NULL;
+
+    /* Read Data File */
+    printf("LOAD DATA FROM FILE. ENTER FILE NAME >>\n");
+    scanf("%s", filename);
+    fileToRead = fopen(filename, "r");
+
+    for (i = 0; i < NUM_EQUIPMENT_TYPES; i++) {
+        fscanf(fileToRead, "%u %d %f %f", &equipmentType[i], &availablePerType[i],
+               &maxPricePerType[i], &minPricePerType[i]);
+    }
+
+    /* Close data file */
+    fclose(fileToRead);
+
+    /* Data Processing */
+    totalRestockCost = 0.0F;
+    numNotices = 0;
+
+    for (i = 0; i < NUM_EQUIPMENT_TYPES; i++) {
+        if (availablePerType[i] < MIN_UNITS) {
+            /* Calculate: Required units + avg price */
+            requiredTmp = MIN_UNITS - availablePerType[i];
+            avgPricePerType[i] = (maxPricePerType[i] + minPricePerType[i]) / 2.0F;
+
+            /* Save Calculated valuesv */
+            equipmentNotice[numNotices] = equipmentType[i];
+            requiredPerNotice[numNotices] = requiredTmp;
+            costPerNotice[numNotices] = (float)requiredTmp * avgPricePerType[i];
+
+            /* Update Total Cost */
+            totalRestockCost = totalRestockCost + costPerNotice[numNotices];
+
+            /* Update Notices Counter */
+            numNotices++;
+        }
+    }
+
+    /* Data Output */
+    printf("MINIMUM STOCK NOTICES (1-DESKTOP, 2-LAPTOP, 3-PRINTER, 4-MONITOR, 5-KEYBOARD, 6-MOUSE)\n");
+    printf("\n");
+
+    if (numNotices > 0) {
+        printf("EQUIPMENT - REQUIRED - RESTOCK COST [EUR]\n");
+        for (i = 0; i < numNotices; i++) {
+            printf("%u - %d - %.2f\n", equipmentNotice[i], requiredPerNotice[i], costPerNotice[i]);
+        }
+
+        /* Total Restock Cost */
+        printf("\n");
+        printf("TOTAL RESTOCK COST [EUR]: %.2f\n", totalRestockCost);
+    } else {
+        /* If all Equipment is above 5 */
+        printf("NO NOTICES.\n");
+    }
+
+    return 0;
+}
